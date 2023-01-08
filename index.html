@@ -50,7 +50,13 @@
             <h3>{{.Namespace}}</h3>
             <hr/>
             {{range .Deployments}}
-            <span class="deployment">{{.Name}}</span> <br/>
+            <span class="deployment">{{.Name}}</span>
+            {{if .IsReady}}
+            <span class="badge badge-success">Healthy</span>
+            {{else}}
+            <span class="badge badge-danger">Not Healthy</span>
+            {{end}}
+            <br/>
                 <span class="badge badge-dark">Image:</span>
                 {{.Image}}
                 <br/>

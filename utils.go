@@ -44,7 +44,7 @@ func getDeployments(namespace string) []Deployment {
   for i := 0; i < len(deployments); i++ {
 		deployments[i] = getDeploymentMapping(deploymentList.Items[i])
 	}
-  log.Info(deployments)
+  //log.Info(deployments)
 	return deployments
 }
 
@@ -65,7 +65,7 @@ func getNamespaces() []string {
 			ns = append(ns, nsName)
 		}
 	}
-  log.Info(ns)
+  //log.Info(ns)
 	return ns
 }
 
