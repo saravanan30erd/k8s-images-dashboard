@@ -17,7 +17,7 @@ func init() {
 }
 
 func Index(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", GetNamespaces())
+	return c.Render(http.StatusOK, "index.html", GetNamespaceDeployments())
 }
 
 type TemplateRenderer struct {
