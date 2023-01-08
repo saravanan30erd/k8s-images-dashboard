@@ -3,14 +3,21 @@ package main
 import (
   "html/template"
   "io"
+  "github.com/sirupsen/logrus"
   "github.com/labstack/echo/middleware"
 	"github.com/labstack/echo"
-	"os"
 	"net/http"
 )
 
+var log = logrus.New()
+
+func init() {
+   log.Formatter = new(logrus.JSONFormatter)
+   log.Level = logrus.DebugLevel
+}
+
 func Index(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", GetNamespaceDeployments())
+	return c.Render(http.StatusOK, "index.html", GetNamespaces())
 }
 
 type TemplateRenderer struct {
@@ -35,6 +42,6 @@ func main() {
     LogLevel:  0,
 		DisableStackAll: true,
 	}))
-
-
+  e.GET("/", Index)
+  e.Logger.Fatal(e.Start(":8000"))
 }
