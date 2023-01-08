@@ -17,14 +17,21 @@ type Deployment struct {
   Name string
   Namespace string
   Image string
-  //IsReady bool
+  IsReady bool
 }
 
 func getDeploymentMapping(deployment v1.Deployment) Deployment {
+	var ready bool
+	if deployment.Status.Replicas == deployment.Status.ReadyReplicas {
+		ready = true
+	} else {
+		ready = false
+	}
   return Deployment{
     Name: deployment.Name,
     Namespace: deployment.Namespace,
     Image: deployment.Spec.Template.Spec.Containers[0].Image,
+		IsReady: ready,
   }
 }
 
