@@ -1,19 +1,19 @@
 package main
 
 import (
-  "html/template"
-  "io"
-  "github.com/sirupsen/logrus"
-  "github.com/labstack/echo/middleware"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
+	"html/template"
+	"io"
 	"net/http"
 )
 
 var log = logrus.New()
 
 func init() {
-   log.Formatter = new(logrus.JSONFormatter)
-   log.Level = logrus.DebugLevel
+	log.Formatter = new(logrus.JSONFormatter)
+	log.Level = logrus.DebugLevel
 }
 
 func Index(c echo.Context) error {
@@ -32,16 +32,16 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 }
 
 func main() {
-  renderer := &TemplateRenderer{
-      templates: template.Must(template.ParseGlob("*.html")),
-  }
-  e := echo.New()
-  e.Renderer = renderer
+	renderer := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("*.html")),
+	}
+	e := echo.New()
+	e.Renderer = renderer
 	e.Use(middleware.Logger())
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
-    LogLevel:  0,
+		LogLevel:        0,
 		DisableStackAll: true,
 	}))
-  e.GET("/", Index)
-  e.Logger.Fatal(e.Start(":8000"))
+	e.GET("/", Index)
+	e.Logger.Fatal(e.Start(":8000"))
 }
