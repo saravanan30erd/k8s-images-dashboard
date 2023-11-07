@@ -8,6 +8,19 @@ import (
 	"strings"
 )
 
+func concatMultipleSlices[T any](slices [][]T) []T {
+	var totalLen int
+	for _, s := range slices {
+		totalLen += len(s)
+	}
+	result := make([]T, totalLen)
+	var i int
+	for _, s := range slices {
+		i += copy(result[i:], s)
+	}
+	return result
+}
+
 type NamespaceWorkloads struct {
 	Namespace string
 	Workloads []Workload
@@ -31,6 +44,21 @@ func getDeploymentMapping(deployment v1.Deployment) Workload {
 		Name:    deployment.Name,
 		Type:    "Deployment",
 		Image:   deployment.Spec.Template.Spec.Containers[0].Image,
+		IsReady: ready,
+	}
+}
+
+func getDaemonSetMapping(daemonset v1.DaemonSet) Workload {
+	var ready bool
+	if daemonset.Status.DesiredNumberScheduled == daemonset.Status.NumberReady {
+		ready = true
+	} else {
+		ready = false
+	}
+	return Workload{
+		Name:    daemonset.Name,
+		Type:    "DaemonSet",
+		Image:   daemonset.Spec.Template.Spec.Containers[0].Image,
 		IsReady: ready,
 	}
 }
@@ -68,7 +96,18 @@ func getWorkloads(namespace string) []Workload {
 	for i := 0; i < len(statefulSets); i++ {
 		statefulSets[i] = getStatefulSetMapping(statefulSetsList.Items[i])
 	}
-	return append(deployments, statefulSets...)
+
+	daemonSetsList, err := client.AppsV1().DaemonSets(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+	daemonSets := make([]Workload, len(daemonSetsList.Items))
+	for i := 0; i < len(daemonSets); i++ {
+		daemonSets[i] = getDaemonSetMapping(daemonSetsList.Items[i])
+	}
+
+	workloads := concatMultipleSlices([][]Workload{deployments, daemonSets, statefulSets})
+	return workloads
 }
 
 func getNamespaces() []string {
