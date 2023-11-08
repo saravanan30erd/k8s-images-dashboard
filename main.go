@@ -17,6 +17,10 @@ func init() {
 }
 
 func Index(c echo.Context) error {
+	if c.QueryParam("format") == "json" {
+		j := GetNamespaceWorkloads()
+		return c.JSONPretty(http.StatusOK, j, "  ")
+	}
 	return c.Render(http.StatusOK, "index.html", GetNamespaceWorkloads())
 }
 
