@@ -79,6 +79,7 @@ func getStatefulSetMapping(statefulSet v1.StatefulSet) Workload {
 }
 
 func getWorkloads(namespace string) []Workload {
+	var workloads []Workload
 	deploymentList, err := client.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err)
@@ -88,25 +89,30 @@ func getWorkloads(namespace string) []Workload {
 		deployments[i] = getDeploymentMapping(deploymentList.Items[i])
 	}
 
-	statefulSetsList, err := client.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		panic(err)
-	}
-	statefulSets := make([]Workload, len(statefulSetsList.Items))
-	for i := 0; i < len(statefulSets); i++ {
-		statefulSets[i] = getStatefulSetMapping(statefulSetsList.Items[i])
-	}
+	onlyDeployment, _ := os.LookupEnv("SHOW_ONLY_DEPLOYMENT")
+	if onlyDeployment == "true" {
+		workloads = deployments
+	} else {
+		statefulSetsList, err := client.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			panic(err)
+		}
+		statefulSets := make([]Workload, len(statefulSetsList.Items))
+		for i := 0; i < len(statefulSets); i++ {
+			statefulSets[i] = getStatefulSetMapping(statefulSetsList.Items[i])
+		}
 
-	daemonSetsList, err := client.AppsV1().DaemonSets(namespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		panic(err)
-	}
-	daemonSets := make([]Workload, len(daemonSetsList.Items))
-	for i := 0; i < len(daemonSets); i++ {
-		daemonSets[i] = getDaemonSetMapping(daemonSetsList.Items[i])
-	}
+		daemonSetsList, err := client.AppsV1().DaemonSets(namespace).List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			panic(err)
+		}
+		daemonSets := make([]Workload, len(daemonSetsList.Items))
+		for i := 0; i < len(daemonSets); i++ {
+			daemonSets[i] = getDaemonSetMapping(daemonSetsList.Items[i])
+		}
 
-	workloads := concatMultipleSlices([][]Workload{deployments, daemonSets, statefulSets})
+		workloads = concatMultipleSlices([][]Workload{deployments, daemonSets, statefulSets})
+	}
 	return workloads
 }
 
